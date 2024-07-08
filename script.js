@@ -1,111 +1,121 @@
 //your code here
-//your code here
-// Get the main container
-const main = document.querySelector('main');
+let robotContainer = document.querySelector('.robot-section');
 
-// Define images array
-const images = ['img1', 'img2', 'img3', 'img4', 'img5'];
 
-// Shuffle the images array
-function shuffleImages() {
-  for (let i = images.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [images[i], images[j]] = [images[j], images[i]];
-  }
+let imagesClassNames = ["img1", "img2", "img3","img4","img5"]
+
+let imagesClassNames2 = [...imagesClassNames, imagesClassNames[Math.floor(Math.random()*imagesClassNames.length)] ]
+
+
+
+function deleteElement(array, index){
+      
+     for(let i = index; i<=array.length-2; i++){
+         array[i] = array[i+1]
+     }
+     array.pop()
+     console.log(array)
+     return array
 }
 
-// Render the images
-function renderImages() {
-  shuffleImages();
-  main.innerHTML = '';
+for(let i = 1; i<=6; i++){
+    let counter = Math.floor(Math.random()*imagesClassNames2.length) 
+   
+     let imageTag = document.createElement('img');
+     console.log(counter)
+     imageTag.className =  imagesClassNames2[counter];
+     imageTag.id = "pic"+i;
+     robotContainer.append(imageTag);
+     // can I modify my array:
+     let newArray = deleteElement(imagesClassNames2, counter)
+     imagesClassNames2 = [...newArray]
+    
+}
 
-  const repeatIndex = Math.floor(Math.random() * images.length);
-  let repeatClass = '';
+//generate an h3 tag 
 
-  for (let i = 0; i < images.length; i++) {
-    const img = document.createElement('img');
-    img.classList.add(images[i]);
-    img.src = `https://picsum.photos/200/300?random=${Math.random()}`;
+let heading3 = document.createElement('h3');
+heading3.innerText = "Please click on the identical tiles to verify that you are not a robot."
+heading3.id = "h3"
+robotContainer.append(heading3);
 
-    if (i === repeatIndex) {
-      repeatClass = images[i];
+
+
+
+let images = document.querySelectorAll('img')
+
+for(let t of images){
+    t.addEventListener("click", validate)
+}
+
+let click = 0
+let resetBtnGenerated = false
+let verifyBtnGenerated = false
+let previousImgaeId = ""
+function validate(event_details){
+    console.log("heyyyyyy")
+    let currentImageId = event_details.target.id
+    if(previousImgaeId != currentImageId){
+      click++ 
+      previousImgaeId = currentImageId
     }
+     
+    // lets highlight the image
+      event_details.target.classList.add("selected")
 
-    img.addEventListener('click', () => handleImageClick(img));
+     if(click == 1 && !resetBtnGenerated){
+          let resetBtn = document.createElement('button');
+          resetBtn.id = "reset";
+          resetBtn.innerText = "Reset";
+          resetBtn.addEventListener("click", reset)
+          robotContainer.append(resetBtn);
+          resetBtnGenerated = true
+     }
+     else if(click == 2 && !verifyBtnGenerated){
+         let verifyBtn = document.createElement('button');
+         verifyBtn.id = "verify";
+         verifyBtn.innerText = "Verify";
+            verifyBtn.addEventListener("click", verify)
+         robotContainer.append(verifyBtn);
+            verifyBtnGenerated = true
+     }
+    
+     else if(click==3){
+        let verifyBtn = document.querySelector("#verify")
+        verifyBtn.remove()
+     }
 
-    main.appendChild(img);
-  }
-
-  return repeatClass;
 }
 
-// Function to handle image click
-let clickedImages = [];
-let verifyButton = null;
 
-function handleImageClick(img) {
-  if (verifyButton) return;
+function reset(){
+    let images = document.querySelectorAll(".selected")
+    for(let t of images){
+        t.classList.remove("selected")
+    }
+    let resetBtn = document.querySelector("#reset")
+    // resetBtn.style.dispaly = "none"
+    resetBtn.remove()
+    click = 0
+    resetBtnGenerated = false
+    verifyBtnGenerated = false
+    previousImgaeId = ""
 
-  img.classList.toggle('selected');
-
-  if (clickedImages.length < 2) {
-    clickedImages.push(img);
-  }
-
-  if (clickedImages.length === 2) {
-    verifyButton = document.createElement('button');
-    verifyButton.id = 'verify';
-    verifyButton.innerHTML = 'Verify';
-    verifyButton.addEventListener('click', handleVerify);
-    main.appendChild(verifyButton);
-  }
-
-  if (clickedImages.length > 2) {
-    main.removeChild(verifyButton);
-    clickedImages.forEach(image => image.classList.remove('selected'));
-    clickedImages = [];
-  }
+    let verifyBtn = document.querySelector("#verify")
+    if(verifyBtn){
+        verifyBtn.remove()
+    }
 }
 
-// Function to handle verify button click
-function handleVerify() {
-  const para = document.createElement('p');
-  para.id = 'para';
-  para.textContent = clickedImages[0].classList.contains(clickedImages[1].classList[0])
-    ? 'You are a human. Congratulations!'
-    : 'We can\'t verify you as a human. You selected the non-identical tiles.';
-  main.appendChild(para);
-  main.removeChild(verifyButton);
-  clickedImages.forEach(image => image.classList.remove('selected'));
-  clickedImages = [];
+function verify(){
+    let selectedImages = document.querySelectorAll(".selected")
+     let para = document.createElement('p');
+     para.id = "para"
+    if(selectedImages[0].className == selectedImages[1].className){
+        para.innerText = "You are a human. Congratulations!."
+    }
+    else{
+        para.innerText = " We can't verify you as a human. You selected the non-identical tiles."
+    }
+    robotContainer.append(para)
 }
-
-// Render the initial state
-function renderInitialState() {
-  const h3 = document.createElement('h3');
-  h3.id = 'h';
-  h3.textContent = 'Please click on the identical tiles to verify that you are not a robot.';
-  main.appendChild(h3);
-
-  const resetButton = document.createElement('button');
-  resetButton.id = 'reset';
-  resetButton.textContent = 'Reset';
-  resetButton.style.display = 'none';
-  resetButton.addEventListener('click', handleReset);
-  main.appendChild(resetButton);
-
-  renderImages();
-}
-
-// Function to handle reset button click
-function handleReset() {
-  const para = document.getElementById('para');
-  if (para) main.removeChild(para);
-  if (verifyButton) main.removeChild(verifyButton);
-  clickedImages.forEach(image => image.classList.remove('selected'));
-  clickedImages = [];
-  renderImages();
-}
-
-// Initialize the app
-renderInitialState();
